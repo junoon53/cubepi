@@ -1,0 +1,68 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<!--[if IE]><script type="text/javascript" src="cango3d/excanvas-modified.js"></script><![endif]-->
+<script src="http://localhost:4000/socket.io/socket.io.js"></script>
+<script type="text/javascript" src="cango3d/Cango3D1v00.js"></script>
+<script type="text/javascript">
+
+	var g;
+	var faces;
+	var data = {x:0,y:0,z:0};
+
+	var socket = io.connect('http://localhost:4000');
+	socket.on('stream', function (data) {
+	      drawCube('canvasID',data);
+	    });
+
+    function drawCube(cvsID,data)
+    {
+      g = new Cango3D(cvsID);  // create a graphics context
+
+      g.clearCanvas("white");
+      g.setWorldCoords3D(-100, -50, 300);
+      g.setLightSource(0, 100, -200);
+
+      var sq = ['M',0, 0, 'L',0,100, 100,100, 100,0, 'z'];
+      faces = [6];
+           
+      // left side
+      faces[0] = g.compileShape3D(sq, "sienna");
+      faces[0].rotate(0, 90, 0);     // flip right edge out of screen
+      // top
+      faces[1] = g.compileShape3D(sq, "yellow");
+      faces[1].rotate(90, 0, 0);        // flip top into of screen
+      faces[1].translate(0, 100, -100); // move up and forward, yellow face now top
+      // bottom
+      faces[2] = g.compileShape3D(sq, "blue");
+      faces[2].rotate(-90, 0, 0);       // flip top edge out of screen
+      // right side
+      faces[3] = g.compileShape3D(sq, "red");
+      faces[3].rotate(0, -90, 0);       // flip right edge into of screen
+      faces[3].translate(100, 0, -100); // move right and out, red face now right side
+      // back
+      faces[4] = g.compileShape3D(sq, "gray");
+      faces[4].rotate(180, 0, 0);       // flip backward down into screen
+      faces[4].translate(0, 100, 0);    // move up so gray face now back
+      // front
+      faces[5] = g.compileShape3D(sq, "green");
+      g.labelShape3D(faces[5], "Front", 50, 50, 20, 5, "white");
+      faces[5].translate(0, 0, -100);   // move out, green face now front
+
+      var tfm = new Transform3D();
+      tfm.translate(0, 0,100);      // move back behind xy plane (canvas)
+      tfm.rotate(data.x,data.y,data.z);
+      tfm.translate(0, data.d.x, data.d.y);
+
+      g.render3D(faces, tfm);
+    }
+
+    // document.getElementbyId("canvasID").onclick = drawCube("canvasID");
+</script>
+</head>
+<body onload="drawCube('canvasID');">
+	<canvas  id="canvasID" width="1024" height="768"></canvas>
+  
+    
+</body>
+</html>
