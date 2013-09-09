@@ -1,68 +1,134 @@
-<!DOCTYPE HTML>
 <html>
 <head>
-<!--[if IE]><script type="text/javascript" src="cango3d/excanvas-modified.js"></script><![endif]-->
-<script src="http://localhost:4000/socket.io/socket.io.js"></script>
+<link href="bootstrap/css/bootstrap.min.css" media="all" rel="stylesheet" type="text/css" />
+<style type="text/css">
+  body {
+    margin: 10px;
+  }
+  .progress  {
+    width: 50%;
+  }
+
+  #canvasID {
+
+  }
+
+</style>
 <script type="text/javascript" src="cango3d/Cango3D1v00.js"></script>
+<script type="text/javascript" src="jquery-1.10.2.js"></script>
+<script type="text/javascript" src="bootstrap/js/bootstrap.min.js"></script>
 <script type="text/javascript">
 
-	var g;
-	var faces;
-	var data = {x:0,y:0,z:0};
+	var faces, wsuri, ws, drawTimer,tfm;
+  var x =20,y=30,z=10;
+  var distance=0, speed=0, oldDistance=0, rotation = 0;
 
-	var socket = io.connect('http://localhost:4000');
-	socket.on('stream', function (data) {
-	      drawCube('canvasID',data);
-	    });
+function CubePi(){
 
-    function drawCube(cvsID,data)
-    {
-      g = new Cango3D(cvsID);  // create a graphics context
+  if ("WebSocket" in window){
+     console.log("WebSocket is supported by your Browser!");
+      
 
-      g.clearCanvas("white");
-      g.setWorldCoords3D(-100, -50, 300);
-      g.setLightSource(0, 100, -200);
+      if (window.location.protocol === "file:") {
+         wsuri = "ws://localhost:3000";
+      } else {
+         wsuri = "ws://" + window.location.hostname + ":3000";
+      }
 
-      var sq = ['M',0, 0, 'L',0,100, 100,100, 100,0, 'z'];
-      faces = [6];
-           
-      // left side
-      faces[0] = g.compileShape3D(sq, "sienna");
-      faces[0].rotate(0, 90, 0);     // flip right edge out of screen
-      // top
-      faces[1] = g.compileShape3D(sq, "yellow");
-      faces[1].rotate(90, 0, 0);        // flip top into of screen
-      faces[1].translate(0, 100, -100); // move up and forward, yellow face now top
-      // bottom
-      faces[2] = g.compileShape3D(sq, "blue");
-      faces[2].rotate(-90, 0, 0);       // flip top edge out of screen
-      // right side
-      faces[3] = g.compileShape3D(sq, "red");
-      faces[3].rotate(0, -90, 0);       // flip right edge into of screen
-      faces[3].translate(100, 0, -100); // move right and out, red face now right side
-      // back
-      faces[4] = g.compileShape3D(sq, "gray");
-      faces[4].rotate(180, 0, 0);       // flip backward down into screen
-      faces[4].translate(0, 100, 0);    // move up so gray face now back
-      // front
-      faces[5] = g.compileShape3D(sq, "green");
-      g.labelShape3D(faces[5], "Front", 50, 50, 20, 5, "white");
-      faces[5].translate(0, 0, -100);   // move out, green face now front
+     ws = new WebSocket(wsuri);
+     ws.onopen = function() {
+        console.log("socket is open!");
+        initCube();
+        drawTimer = window.setInterval(drawCube,15);
+     };
 
-      var tfm = new Transform3D();
-      tfm.translate(0, 0,100);      // move back behind xy plane (canvas)
-      tfm.rotate(data.x,data.y,data.z);
-      tfm.translate(0, data.d.x, data.d.y);
+     ws.onmessage = function (evt) { 
+        //console.log("Data received: "+evt.data);
+        distance = parseFloat(evt.data.split(",")[0].split(" ")[1],10);
+        speed = Math.abs(parseFloat(evt.data.split(",")[1].split(" ")[1],10));
+        console.log(distance+" "+speed);
 
-      g.render3D(faces, tfm);
-    }
+     };
 
-    // document.getElementbyId("canvasID").onclick = drawCube("canvasID");
+     ws.onclose = function() { 
+        // websocket is closed.
+        console.log("Connection is closed..."); 
+        window.clearInterval(drawTimer);
+     };
+
+  }  else  {
+     // The browser doesn't support WebSocket
+     alert("WebSocket NOT supported by your Browser!");
+  }
+
+}
+
+function initCube() {
+  console.log('iniializing cube...');
+  g = new Cango3D('canvasID'); 
+ 
+  g.setWorldCoords3D(-33, -30, 100);
+  g.setLightSource(0, 100, -200);
+
+  var sq = ['M',0, 0, 'L',0,100, 100,100, 100,0, 'z'];
+  faces = [6];
+       
+  // left side
+  faces[0] = g.compileShape3D(sq, "sienna");
+  faces[0].rotate(0, 90, 0);     // flip right edge out of screen
+  // top
+  faces[1] = g.compileShape3D(sq, "yellow");
+  faces[1].rotate(90, 0, 0);        // flip top into of screen
+  faces[1].translate(0, 100, -100); // move up and forward, yellow face now top
+  // bottom
+  faces[2] = g.compileShape3D(sq, "blue");
+  faces[2].rotate(-90, 0, 0);       // flip top edge out of screen
+  // right side
+  faces[3] = g.compileShape3D(sq, "red");
+  faces[3].rotate(0, -90, 0);       // flip right edge into of screen
+  faces[3].translate(100, 0, -100); // move right and out, red face now right side
+  // back
+  faces[4] = g.compileShape3D(sq, "gray");
+  faces[4].rotate(180, 0, 0);       // flip backward down into screen
+  faces[4].translate(0, 100, 0);    // move up so gray face now back
+  // front
+  faces[5] = g.compileShape3D(sq, "green");
+  g.labelShape3D(faces[5], "Front", 50, 50, 20, 5, "white");
+  faces[5].translate(0, 0, -100);   // move out, green face now front
+  
+}
+
+function drawCube() {
+  g.clearCanvas("white");
+  tfm = new Transform3D();
+  console.log('drawing cube...');
+  tfm.translate(0, 0,100);
+  //rotation = rotation + (speed*1.5);
+  //console.log('rotation:'+rotation);
+  //if(rotation >= 360) rotation = 360-rotation;
+  tfm.rotate(x,y,z);
+  tfm.translate(0, 0,distance*50);
+  oldDistance = distance;
+  g.render3D(faces, tfm);
+  y++;
+
+  $('.progress-bar').css( "width", speed*10+"%" );
+}
+
 </script>
 </head>
-<body onload="drawCube('canvasID');">
-	<canvas  id="canvasID" width="1024" height="768"></canvas>
-  
-    
+<body onload="CubePi();">
+<h1>Cube Pi :)</h1>
+  <div class="progress">
+    <div class="progress-bar" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 40%;">
+      <span class="sr-only">60% Complete</span>
+    </div>
+  </div>
+  <div class="panel panel-default">
+  <div class="panel-body">
+    <canvas  id="canvasID" width="800" height="800"></canvas>  
+  </div>
+</div>
+	  
 </body>
 </html>
