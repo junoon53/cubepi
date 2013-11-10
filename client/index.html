@@ -8,7 +8,7 @@
   .progress  {
     width: 50%;
   }
-
+`
   #canvasID {
 
   }
@@ -67,7 +67,7 @@ function initCube() {
   console.log('iniializing cube...');
   g = new Cango3D('canvasID'); 
  
-  g.setWorldCoords3D(-33, -30, 100);
+  g.setWorldCoords3D(-170, -80, 400);
   g.setLightSource(0, 100, -200);
 
   var sq = ['M',0, 0, 'L',0,100, 100,100, 100,0, 'z'];
@@ -93,7 +93,7 @@ function initCube() {
   faces[4].translate(0, 100, 0);    // move up so gray face now back
   // front
   faces[5] = g.compileShape3D(sq, "green");
-  g.labelShape3D(faces[5], "Front", 50, 50, 20, 5, "white");
+  g.labelShape3D(faces[5], "github.com\/junoon53\/cubepi", 50, 50, 20, 5, "white");
   faces[5].translate(0, 0, -100);   // move out, green face now front
   
 }
@@ -106,7 +106,7 @@ function drawCube() {
   //rotation = rotation + (speed*1.5);
   //console.log('rotation:'+rotation);
   //if(rotation >= 360) rotation = 360-rotation;
-  tfm.rotate(x,y,z);
+  tfm.rotate(-50,y/30,-50);
   tfm.translate(0, 0,distance*50);
   oldDistance = distance;
   g.render3D(faces, tfm);
@@ -119,6 +119,7 @@ function drawCube() {
 </head>
 <body onload="CubePi();">
 <h1>Cube Pi :)</h1>
+<h3>velocity</h3>
   <div class="progress">
     <div class="progress-bar" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 40%;">
       <span class="sr-only">60% Complete</span>
@@ -126,7 +127,7 @@ function drawCube() {
   </div>
   <div class="panel panel-default">
   <div class="panel-body">
-    <canvas  id="canvasID" width="800" height="800"></canvas>  
+    <canvas  id="canvasID" width="1600" height="800"></canvas>  
   </div>
 </div>
 	  
